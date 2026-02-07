@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>VOID_BROWSER_v6</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Courier+Prime&family=Special+Elite&display=swap');
+
+        body, html {
+            margin: 0; padding: 0;
+            background-color: #000;
+            color: #ff0000;
+            font-family: 'Special Elite', cursive;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        /* Blood Layer */
+        #blood-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Browser Home Page */
+        #home-page {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .browser-logo {
+            font-family: 'Creepster', cursive;
+            font-size: clamp(3rem, 10vw, 6rem);
+            color: #8a0303;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #f00;
+            letter-spacing: 5px;
+        }
+
+        .search-box {
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            background: rgba(10, 0, 0, 0.9);
+            border: 2px solid #500;
+            color: #f00;
+            font-size: 1.5rem;
+            text-align: center;
+            outline: none;
+            font-family: 'Courier Prime';
+            box-shadow: 0 0 15px #300;
+            transition: 0.3s;
+        }
+
+        .search-box:focus {
+            border-color: #f00;
+            box-shadow: 0 0 25px #8a0303;
+        }
+
+        .instruction {
+            margin-top: 25px;
+            color: #444;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        /* Result Screen */
+        #result-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: black;
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .name-reveal {
+            font-family: 'Creepster';
+            font-size: clamp(5rem, 15vw, 10rem);
+            color: #fff;
+            text-shadow: 0 0 50px #ff0000;
+            animation: flicker 0.1s infinite;
+        }
+
+        /* HACK/FREEZE SCREEN (The Prank) */
+        #hack-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            z-index: 9999;
+            color: #0f0; 
+            font-family: 'Courier Prime', monospace;
+            padding: 10px;
+            overflow: hidden;
+            font-size: 0.9rem;
+            line-height: 1.2;
+            pointer-events: none; /* User is locked out */
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+
+        .shake-heavy {
+            animation: shake 0.05s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(5px, 5px); }
+            25% { transform: translate(-5px, -3px); }
+            50% { transform: translate(3px, 5px); }
+            75% { transform: translate(-3px, -5px); }
+            100% { transform: translate(2px, 2px); }
+        }
+    </style>
+</head>
+<body onclick="startSound()">
+
+    <canvas id="blood-canvas"></canvas>
+
+    <div id="home-page">
+        <div class="browser-logo">ABYSS_BROWSER</div>
+        <input type="text" id="searchInput" class="search-box" placeholder="search" autocomplete="off">
+        <div class="instruction">SEARCH: "MY DAD"</div>
+    </div>
+
+    <div id="result-screen">
+        <div class="name-reveal">ANISH</div>
+        <div id="timer" style="color: #8a0303; margin-top: 20px; font-size: 1.5rem;">CRITICAL BREACH IN 3...</div>
+    </div>
+
+    <div id="hack-screen">
+        <div id="matrix-code"></div>
+    </div>
+
+    <script>
+        let audioCtx;
+        let soundStarted = false;
+
+        function startSound() {
+            if (soundStarted) return;
+            soundStarted = true;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Sub-bass drone for tension
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.value = 35;
+            gain.gain.value = 0.15;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+        }
+
+        // Search Input Logic
+        const input = document.getElementById('searchInput');
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                let val = input.value.toLowerCase().trim();
+                if (val === "my dad") {
+                    triggerAnish();
+                } else {
+                    document.querySelector('.instruction').innerText = "ACCESS DENIED. SEARCH 'MY DAD'";
+                    document.querySelector('.instruction').style.color = "red";
+                }
+            }
+        });
+
+        function triggerAnish() {
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'flex';
+            
+            let count = 3;
+            const timerText = document.getElementById('timer');
+            
+            const countdown = setInterval(() => {
+                count--;
+                timerText.innerText = `CRITICAL BREACH IN ${count}...`;
+                
+                // Alert Beeps
+                const b = audioCtx.createOscillator();
+                b.frequency.value = 300 + (3 - count) * 200;
+                const g = audioCtx.createGain();
+                g.gain.value = 0.2;
+                b.connect(g); g.connect(audioCtx.destination);
+                b.start(); b.stop(audioCtx.currentTime + 0.1);
+
+                if (count <= 0) {
+                    clearInterval(countdown);
+                    initFakeHack();
+                }
+            }, 1000);
+        }
+
+        function initFakeHack() {
+            // Glitch Screech Sound
+            const s = audioCtx.createOscillator();
+            s.type = 'sawtooth';
+            s.frequency.setValueAtTime(200, audioCtx.currentTime);
+            s.frequency.exponentialRampToValueAtTime(5000, audioCtx.currentTime + 2);
+            const g = audioCtx.createGain();
+            g.gain.value = 0.4;
+            s.connect(g); g.connect(audioCtx.destination);
+            s.start();
+
+            document.getElementById('result-screen').style.display = 'none';
+            const hackScreen = document.getElementById('hack-screen');
+            hackScreen.style.display = 'block';
+            document.body.classList.add('shake-heavy');
+
+            // Matrix / Error Message Loop
+            const codeBox = document.getElementById('matrix-code');
+            const errors = [
+                "SYSTEM_OVERRIDE_DETECTED", "WIPING_DRIVE_C:/", "REMOTE_ACCESS_GRANTED",
+                "EXFILTRATING_DATA_TO_ANISH", "ENCRYPTING_FILES...", "CPU_OVERHEATING",
+                "FATAL_ERROR_0x666", "USER_IDENTITY_STOLEN", "HARDWARE_LOCK_ENGAGED"
+            ];
+
+            setInterval(() => {
+                let msg = errors[Math.floor(Math.random() * errors.length)];
+                let hex = "0x" + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+                codeBox.innerHTML += `<div><span style="color:white">${hex}</span>: <span style="color:#0f0">${msg}</span></div>`;
+                
+                if(codeBox.childNodes.length > 80) codeBox.removeChild(codeBox.childNodes[0]);
+                window.scrollTo(0, document.body.scrollHeight);
+            }, 15);
+        }
+
+        // Blood Drip Animation Logic
+        const canvas = document.getElementById('blood-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        function drip() {
+            ctx.fillStyle = 'rgba(0,0,0,0.08)';
+            ctx.fillRect(0,0,canvas.width, canvas.height);
+            ctx.fillStyle = '#600';
+            for(let i=0; i<12; i++) {
+                ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 1.5, Math.random()*120);
+            }
+            requestAnimationFrame(drip);
+        }
+        drip();
+    </script>
+</body>
+</html>
